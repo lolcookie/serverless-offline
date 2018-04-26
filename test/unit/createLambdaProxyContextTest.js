@@ -10,27 +10,37 @@ const createLambdaProxyContext = require('../../src/createLambdaProxyContext');
 const expect = chai.expect;
 chai.use(dirtyChai);
 
-describe('createLambdaProxyContext', () => {
-
+describe.only('createLambdaProxyContext', () => {
   const expectFixedAttributes = lambdaProxyContext => {
     const requestContext = lambdaProxyContext.requestContext;
     expect(requestContext.accountId).to.eq('offlineContext_accountId');
     expect(requestContext.resourceId).to.eq('offlineContext_resourceId');
-    expect(requestContext.identity.cognitoIdentityPoolId).to.eq('offlineContext_cognitoIdentityPoolId');
+    expect(requestContext.identity.cognitoIdentityPoolId).to.eq(
+      'offlineContext_cognitoIdentityPoolId'
+    );
     expect(requestContext.identity.accountId).to.eq('offlineContext_accountId');
-    expect(requestContext.identity.cognitoIdentityId).to.eq('offlineContext_cognitoIdentityId');
+    expect(requestContext.identity.cognitoIdentityId).to.eq(
+      'offlineContext_cognitoIdentityId'
+    );
     expect(requestContext.identity.caller).to.eq('offlineContext_caller');
     expect(requestContext.identity.apiKey).to.eq('offlineContext_apiKey');
-    expect(requestContext.identity.cognitoAuthenticationType).to.eq('offlineContext_cognitoAuthenticationType');
-    expect(requestContext.identity.cognitoAuthenticationProvider).to.eq('offlineContext_cognitoAuthenticationProvider');
+    expect(requestContext.identity.cognitoAuthenticationType).to.eq(
+      'offlineContext_cognitoAuthenticationType'
+    );
+    expect(requestContext.identity.cognitoAuthenticationProvider).to.eq(
+      'offlineContext_cognitoAuthenticationProvider'
+    );
     expect(requestContext.identity.userArn).to.eq('offlineContext_userArn');
     expect(requestContext.identity.user).to.eq('offlineContext_user');
-    expect(requestContext.authorizer.principalId).to.eq('offlineContext_authorizer_principalId');
+    expect(requestContext.authorizer.principalId).to.eq(
+      'offlineContext_authorizer_principalId'
+    );
   };
 
   const stageVariables = {};
   const options = {
     stage: 'dev',
+    cognitoIdentityId: 'offlineContext_cognitoIdentityId',
   };
 
   context('with a GET /fn1 request', () => {
@@ -40,7 +50,11 @@ describe('createLambdaProxyContext', () => {
     let lambdaProxyContext;
 
     before(() => {
-      lambdaProxyContext = createLambdaProxyContext(request, options, stageVariables);
+      lambdaProxyContext = createLambdaProxyContext(
+        request,
+        options,
+        stageVariables
+      );
     });
 
     it('queryStringParameters should be null', () => {
@@ -73,86 +87,123 @@ describe('createLambdaProxyContext', () => {
     let lambdaProxyContext;
 
     before(() => {
-      lambdaProxyContext = createLambdaProxyContext(request, options, stageVariables);
+      lambdaProxyContext = createLambdaProxyContext(
+        request,
+        options,
+        stageVariables
+      );
     });
 
     it('should have two headers', () => {
       expect(Object.keys(lambdaProxyContext.headers).length).to.eq(2);
-      expect(lambdaProxyContext.headers['Content-Type']).to.eq('application/json');
-      expect(lambdaProxyContext.headers.Authorization).to.eq('Token token="1234567890"');
+      expect(lambdaProxyContext.headers['Content-Type']).to.eq(
+        'application/json'
+      );
+      expect(lambdaProxyContext.headers.Authorization).to.eq(
+        'Token token="1234567890"'
+      );
     });
 
     it('should not have claims for authorizer if token is not JWT', () => {
-      expect(lambdaProxyContext.requestContext.authorizer.claims).to.be.undefined;
+      expect(lambdaProxyContext.requestContext.authorizer.claims).to.be
+        .undefined;
     });
   });
 
-  context('with a GET /fn1 request with Authorization header that contains JWT token', () => {
-    // mock token
-    // header
-    // {
-    //    "alg": "HS256",
-    //    "typ": "JWT"
-    // }
-    // payload
-    // {
-    //   "sub": "1234567890",
-    //   "name": "John Doe",
-    //   "admin": true
-    // }
+  context(
+    'with a GET /fn1 request with Authorization header that contains JWT token',
+    () => {
+      // mock token
+      // header
+      // {
+      //    "alg": "HS256",
+      //    "typ": "JWT"
+      // }
+      // payload
+      // {
+      //   "sub": "1234567890",
+      //   "name": "John Doe",
+      //   "admin": true
+      // }
 
-    /* eslint-disable max-len */
-    const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9.TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFONFh7HgQ';
-    const bearerToken = `Bearer ${token}`;
+      /* eslint-disable max-len */
+      const token =
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9.TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFONFh7HgQ';
+      const bearerToken = `Bearer ${token}`;
 
-    it('should have claims for authorizer if Authorization header has valid JWT', () => {
-      const requestBuilder = new RequestBuilder('GET', '/fn1');
-      requestBuilder.addHeader('Authorization', token);
-      const request = requestBuilder.toObject();
-      const lambdaProxyContext = createLambdaProxyContext(request, options, stageVariables);
-      expect(lambdaProxyContext.requestContext.authorizer.claims).to.deep.equal({
-        sub: '1234567890',
-        name: 'John Doe',
-        admin: true,
+      it('should have claims for authorizer if Authorization header has valid JWT', () => {
+        const requestBuilder = new RequestBuilder('GET', '/fn1');
+        requestBuilder.addHeader('Authorization', token);
+        const request = requestBuilder.toObject();
+        const lambdaProxyContext = createLambdaProxyContext(
+          request,
+          options,
+          stageVariables
+        );
+        expect(
+          lambdaProxyContext.requestContext.authorizer.claims
+        ).to.deep.equal({
+          sub: '1234567890',
+          name: 'John Doe',
+          admin: true,
+        });
       });
-    });
 
-    it('should have claims for authorizer if authorization header has valid JWT', () => {
-      const requestBuilder = new RequestBuilder('GET', '/fn1');
-      requestBuilder.addHeader('authorization', token);
-      const request = requestBuilder.toObject();
-      const lambdaProxyContext = createLambdaProxyContext(request, options, stageVariables);
-      expect(lambdaProxyContext.requestContext.authorizer.claims).to.deep.equal({
-        sub: '1234567890',
-        name: 'John Doe',
-        admin: true,
+      it('should have claims for authorizer if authorization header has valid JWT', () => {
+        const requestBuilder = new RequestBuilder('GET', '/fn1');
+        requestBuilder.addHeader('authorization', token);
+        const request = requestBuilder.toObject();
+        const lambdaProxyContext = createLambdaProxyContext(
+          request,
+          options,
+          stageVariables
+        );
+        expect(
+          lambdaProxyContext.requestContext.authorizer.claims
+        ).to.deep.equal({
+          sub: '1234567890',
+          name: 'John Doe',
+          admin: true,
+        });
       });
-    });
 
-    it('should have claims for authorizer if Authorization header has valid Bearer JWT', () => {
-      const requestBuilder = new RequestBuilder('GET', '/fn1');
-      requestBuilder.addHeader('Authorization', bearerToken);
-      const request = requestBuilder.toObject();
-      const lambdaProxyContext = createLambdaProxyContext(request, options, stageVariables);
-      expect(lambdaProxyContext.requestContext.authorizer.claims).to.deep.equal({
-        sub: '1234567890',
-        name: 'John Doe',
-        admin: true,
+      it('should have claims for authorizer if Authorization header has valid Bearer JWT', () => {
+        const requestBuilder = new RequestBuilder('GET', '/fn1');
+        requestBuilder.addHeader('Authorization', bearerToken);
+        const request = requestBuilder.toObject();
+        const lambdaProxyContext = createLambdaProxyContext(
+          request,
+          options,
+          stageVariables
+        );
+        expect(
+          lambdaProxyContext.requestContext.authorizer.claims
+        ).to.deep.equal({
+          sub: '1234567890',
+          name: 'John Doe',
+          admin: true,
+        });
       });
-    });
 
-    it('should have claims for authorizer if authorization header has valid Bearer JWT', () => {
-      const requestBuilder = new RequestBuilder('GET', '/fn1');
-      requestBuilder.addHeader('authorization', bearerToken);
-      const request = requestBuilder.toObject();
-      const lambdaProxyContext = createLambdaProxyContext(request, options, stageVariables);
-      expect(lambdaProxyContext.requestContext.authorizer.claims).to.deep.equal({
-        sub: '1234567890',
-        name: 'John Doe',
-        admin: true,
+      it('should have claims for authorizer if authorization header has valid Bearer JWT', () => {
+        const requestBuilder = new RequestBuilder('GET', '/fn1');
+        requestBuilder.addHeader('authorization', bearerToken);
+        const request = requestBuilder.toObject();
+        const lambdaProxyContext = createLambdaProxyContext(
+          request,
+          options,
+          stageVariables
+        );
+        expect(
+          lambdaProxyContext.requestContext.authorizer.claims
+        ).to.deep.equal({
+          sub: '1234567890',
+          name: 'John Doe',
+          admin: true,
+        });
       });
-    });
-  });
+    }
+  );
 
   context('with a POST /fn1 request with no headers', () => {
     const requestBuilder = new RequestBuilder('POST', '/fn1');
@@ -162,7 +213,11 @@ describe('createLambdaProxyContext', () => {
     let lambdaProxyContext;
 
     before(() => {
-      lambdaProxyContext = createLambdaProxyContext(request, options, stageVariables);
+      lambdaProxyContext = createLambdaProxyContext(
+        request,
+        options,
+        stageVariables
+      );
     });
 
     it('should calculate the Content-Length header', () => {
@@ -170,14 +225,17 @@ describe('createLambdaProxyContext', () => {
     });
 
     it('should inject a default Content-Type header', () => {
-      expect(lambdaProxyContext.headers['Content-Type']).to.eq('application/json');
+      expect(lambdaProxyContext.headers['Content-Type']).to.eq(
+        'application/json'
+      );
     });
 
     it('should stringify the payload for the body', () => {
       expect(lambdaProxyContext.body).to.eq('{"key":"value"}');
     });
     it('should not have claims for authorizer', () => {
-      expect(lambdaProxyContext.requestContext.authorizer.claims).to.be.undefined;
+      expect(lambdaProxyContext.requestContext.authorizer.claims).to.be
+        .undefined;
     });
   });
 
@@ -189,7 +247,11 @@ describe('createLambdaProxyContext', () => {
     let lambdaProxyContext;
 
     before(() => {
-      lambdaProxyContext = createLambdaProxyContext(request, options, stageVariables);
+      lambdaProxyContext = createLambdaProxyContext(
+        request,
+        options,
+        stageVariables
+      );
     });
 
     it('should have a path parameter', () => {
@@ -206,7 +268,11 @@ describe('createLambdaProxyContext', () => {
     let lambdaProxyContext;
 
     before(() => {
-      lambdaProxyContext = createLambdaProxyContext(request, options, stageVariables);
+      lambdaProxyContext = createLambdaProxyContext(
+        request,
+        options,
+        stageVariables
+      );
     });
 
     it('should have a path parameter', () => {
