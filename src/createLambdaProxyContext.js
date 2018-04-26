@@ -70,7 +70,7 @@ module.exports = function createLambdaProxyContext(
       identity: {
         cognitoIdentityPoolId: 'offlineContext_cognitoIdentityPoolId',
         accountId: 'offlineContext_accountId',
-        cognitoIdentityId: options.cognitoIdentityId,
+        cognitoIdentityId: options.cognitoIdentity,
         caller: 'offlineContext_caller',
         apiKey: 'offlineContext_apiKey',
         sourceIp: request.info.remoteAddress,
